@@ -450,4 +450,4 @@ notebooks/delta_load.ipynb
 
 Data Analyst | Python | SQL | Data Warehouse
 
-GitHub: <your-github-link>
+GitHub: https://github.com/zakyrayadhi
