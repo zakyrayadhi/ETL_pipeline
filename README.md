@@ -81,7 +81,7 @@ PostgreSQL Data Warehouse
 
 ```
 grocery-sales-datawarehouse/
-│
+
 ├── data/
 │   ├── grocery_sales.csv
 │   ├── initial_load_data.csv
@@ -93,15 +93,16 @@ grocery-sales-datawarehouse/
 │
 ├── notebooks/
 │   ├── full_reload.ipynb
-│   ├── initial_load.ipynb
-│   └── delta_load.ipynb
+│   ├── initial_load_analysis.ipynb
+│   └── delta_load_analysis.ipynb
 │
 ├── scripts/
-│   ├── config.py
+│   ├── ddl.py
+│   ├── initial_load.py
+│   ├── delta_load.py
 │   ├── extract.py
 │   ├── transform.py
-│   ├── load.py
-│   └── ddl.py
+│   └── load.py
 │
 ├── requirements.txt
 └── README.md
