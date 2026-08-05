@@ -97,6 +97,7 @@ grocery-sales-datawarehouse/
 │   └── delta_load_analysis.ipynb
 │
 ├── scripts/
+│   ├── config.py
 │   ├── ddl.py
 │   ├── initial_load.py
 │   ├── delta_load.py
