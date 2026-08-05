@@ -4,21 +4,22 @@
 
 This project implements an end-to-end **ETL (Extract, Transform, Load) pipeline** to build a structured **Data Warehouse** from grocery sales transaction data.
 
-The pipeline extracts raw transactional data, performs data transformation using Python, and loads the processed data into a PostgreSQL Data Warehouse using a **Star Schema architecture**.
+The pipeline extracts raw transactional data, performs transformation using Python, and loads the processed data into a PostgreSQL Data Warehouse using a **Star Schema architecture**.
 
 This project evaluates two different data loading strategies:
 
 1. **Full Reload**
 
-   * Reloads the complete dataset from the beginning every time the pipeline runs.
-   * Simulates a scenario where all available data is always processed.
+   * The complete dataset is loaded and processed from the beginning.
+   * The pipeline reads directly from `grocery_sales.csv`.
+   * This approach simulates a scenario where all available data is reprocessed every time.
 
-2. **Incremental Load (Initial Load + Delta Load)**
+2. **Incremental Load**
 
-   * Splits data into historical records and newly arriving records.
-   * Initial load populates the Data Warehouse with existing historical data.
-   * Delta load processes only new incoming records.
-   * Simulates a production-like incremental data ingestion workflow.
+   * The dataset is divided into historical data and newly arriving data.
+   * The initial load populates the Data Warehouse with historical records.
+   * The delta load processes only newly added records.
+   * This approach simulates a production-like incremental data ingestion workflow.
 
 The objective is to compare both approaches and measure the efficiency improvement achieved through incremental loading.
 
@@ -31,17 +32,17 @@ The objective is to compare both approaches and measure the efficiency improveme
 * Transform raw transactional data into analytical structures
 * Implement dimension and fact table relationships
 * Implement full reload and incremental loading strategies
-* Compare ETL performance between different loading approaches
+* Compare ETL execution performance between loading approaches
 
 ---
 
 # 🏗️ ETL Architecture
 
-The pipeline follows a standard ETL workflow:
+The pipeline follows an ETL workflow:
 
 ![ETL Workflow](docs/etl_flow.png)
 
-Workflow:
+High-level workflow:
 
 ```
 Source Data
@@ -63,15 +64,16 @@ PostgreSQL Data Warehouse
 
 # 🛠️ Tech Stack
 
-| Category             | Technology   |
-| -------------------- | ------------ |
-| Programming Language | Python       |
-| Database             | PostgreSQL   |
-| Data Processing      | Pandas       |
-| Database Connector   | Psycopg2     |
-| SQL Client           | DBeaver      |
-| Data Modeling        | Star Schema  |
-| Version Control      | Git & GitHub |
+| Category                | Technology       |
+| ----------------------- | ---------------- |
+| Programming Language    | Python           |
+| Database                | PostgreSQL       |
+| Data Processing         | Pandas           |
+| Database Connector      | Psycopg2         |
+| SQL Client              | DBeaver          |
+| Data Modeling           | Star Schema      |
+| Development Environment | Jupyter Notebook |
+| Version Control         | Git & GitHub     |
 
 ---
 
@@ -89,15 +91,17 @@ grocery-sales-datawarehouse/
 │   ├── etl_flow.png
 │   └── star_schema.png
 │
-├── config.py
-├── extract.py
-├── transform.py
-├── load.py
+├── notebooks/
+│   ├── full_reload.ipynb
+│   ├── initial_load.ipynb
+│   └── delta_load.ipynb
 │
-├── ddl.py
-├── full_reload.py
-├── initial_load.py
-├── delta_load.py
+├── scripts/
+│   ├── config.py
+│   ├── extract.py
+│   ├── transform.py
+│   ├── load.py
+│   └── ddl.py
 │
 ├── requirements.txt
 └── README.md
@@ -113,7 +117,7 @@ The Data Warehouse follows a **Star Schema architecture**.
 
 The schema consists of:
 
-* Dimension tables containing descriptive attributes
+* Dimension tables containing descriptive information
 * Fact table containing transactional measurements
 
 ---
@@ -157,7 +161,7 @@ Stores store information.
 
 ## dim_date
 
-Stores date and time information for transaction analysis.
+Stores date and time information.
 
 | Column  | Description       |
 | ------- | ----------------- |
@@ -185,8 +189,8 @@ Stores transactional sales information.
 | product_id         | Product foreign key    |
 | store_id           | Store foreign key      |
 | date_id            | Date foreign key       |
-| quantity           | Quantity purchased     |
 | price              | Product price          |
+| quantity           | Quantity purchased     |
 | discount           | Applied discount       |
 | sales              | Total sales amount     |
 
@@ -198,9 +202,11 @@ Stores transactional sales information.
 
 The extraction process reads transaction data from CSV files.
 
-The project implements two loading scenarios:
+The project implements two loading scenarios.
 
-### Full Reload Dataset
+---
+
+## Full Reload Scenario
 
 Source:
 
@@ -208,21 +214,66 @@ Source:
 grocery_sales.csv
 ```
 
-Purpose:
+The full reload scenario processes the entire dataset.
 
-* Process all available transaction records
-* Simulate complete warehouse refresh
+Workflow:
+
+```
+grocery_sales.csv
+        |
+        v
+ Extract All Records
+        |
+        v
+ Transform
+        |
+        v
+ Load
+        |
+        v
+Data Warehouse
+```
+
+Characteristics:
+
+* Processes all available records
+* Simple implementation
+* Suitable for smaller datasets
+* Execution time increases as data volume grows
 
 ---
 
-### Incremental Load Dataset
+## Incremental Load Scenario
 
-The source dataset is divided into:
+The dataset is split into:
 
-| Dataset               | Purpose                                                |
-| --------------------- | ------------------------------------------------------ |
-| initial_load_data.csv | Historical records used for first warehouse population |
-| delta_load_data.csv   | New incoming transactions for incremental updates      |
+| Dataset               | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| initial_load_data.csv | Historical records for first warehouse population |
+| delta_load_data.csv   | New incoming records for incremental updates      |
+
+Workflow:
+
+```
+initial_load_data.csv
+          |
+          v
+    Initial Load
+          |
+          v
+Data Warehouse
+
+
+delta_load_data.csv
+          |
+          v
+     Delta Load
+          |
+          v
+Append New Records
+```
+
+The delta load process only processes new transactions after the initial warehouse population.
 
 ---
 
@@ -254,84 +305,67 @@ Dimension Tables
    Fact Table
 ```
 
-Dimension tables are loaded first to ensure foreign key relationships are available before inserting transactional records.
+Dimension tables are loaded first to maintain foreign key relationships before inserting transactional records.
 
 ---
 
-# ⚡ Loading Strategy
+# 📓 Notebook Workflow
 
-## Full Reload
+The ETL process is executed using three Jupyter Notebooks.
 
-The full reload approach processes the entire dataset every time.
+## 1. Full Reload Notebook
 
-Workflow:
+Notebook:
 
 ```
-grocery_sales.csv
-        |
-        v
-     Extract
-        |
-        v
-    Transform
-        |
-        v
-      Load
-        |
-        v
-Data Warehouse
+full_reload.ipynb
 ```
 
-Advantages:
+Purpose:
 
-* Simple implementation
-* Easy to maintain
-
-Limitations:
-
-* Processing time increases as data grows
-* Existing records are processed repeatedly
+* Load complete data from `grocery_sales.csv`
+* Process all available records
+* Simulate full warehouse refresh
 
 ---
 
-## Incremental Load
+## 2. Initial Load Notebook
 
-The incremental loading approach simulates real-world data ingestion.
-
-Workflow:
+Notebook:
 
 ```
-initial_load_data.csv
-          |
-          v
-    Initial Load
-          |
-          v
-Data Warehouse
-
-
-delta_load_data.csv
-          |
-          v
-     Delta Load
-          |
-          v
-Append New Records
+initial_load.ipynb
 ```
 
-The delta load process identifies new transactions based on the latest transaction timestamp stored in the Data Warehouse.
+Purpose:
 
-Advantages:
+* Load historical data from `initial_load_data.csv`
+* Prepare initial Data Warehouse state before incremental updates
 
-* Processes only new records
-* Reduces execution time
-* More scalable for continuous data updates
+Note:
+The initial load execution time is not included in the performance comparison because it represents warehouse initialization.
+
+---
+
+## 3. Delta Load Notebook
+
+Notebook:
+
+```
+delta_load.ipynb
+```
+
+Purpose:
+
+* Process new records from `delta_load_data.csv`
+* Append only new transactions
+* Simulate continuous incremental ingestion
 
 ---
 
 # 🚀 ETL Performance Comparison
 
-The pipeline performance was tested using both loading strategies.
+The pipeline performance was evaluated between full reload and delta load scenarios.
 
 | Loading Method | Dataset             | Execution Time |
 | -------------- | ------------------- | -------------: |
@@ -360,16 +394,7 @@ Validation checks performed:
 
 # ▶️ How to Run
 
-## 1. Clone Repository
-
-```bash
-git clone <repository-url>
-cd grocery-sales-datawarehouse
-```
-
----
-
-## 2. Install Dependencies
+## 1. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -377,7 +402,7 @@ pip install -r requirements.txt
 
 ---
 
-## 3. Configure Database Connection
+## 2. Configure Database Connection
 
 Update database credentials in:
 
@@ -385,46 +410,26 @@ Update database credentials in:
 config.py
 ```
 
-Example:
-
-```python
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "warehouse"
-DB_USER = "postgres"
-DB_PASSWORD = "password"
-```
-
 ---
 
-## 4. Create Database Tables
+## 3. Execute Notebooks
 
-```bash
-python ddl.py
+### Full Reload
+
+```
+notebooks/full_reload.ipynb
 ```
 
----
+### Initial Load
 
-## 5. Run Full Reload
-
-```bash
-python full_reload.py
+```
+notebooks/initial_load.ipynb
 ```
 
----
+### Delta Load
 
-## 6. Run Initial Load
-
-```bash
-python initial_load.py
 ```
-
----
-
-## 7. Run Delta Load
-
-```bash
-python delta_load.py
+notebooks/delta_load.ipynb
 ```
 
 ---
